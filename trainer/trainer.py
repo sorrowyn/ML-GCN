@@ -6,12 +6,14 @@ import shutil
 import sys
 sys.path.append('.')
 
+import numpy as np
+
 from torch.nn.utils import clip_grad_norm_
 
 from base import BaseTrainer
 from callbacks import Tqdm
 from data import DataManger
-from evaluators import plot_loss_accuracy, compute_accuracy_cuda
+from evaluators import plot_loss_accuracy, compute_accuracy_cuda, recognition_metrics
 from losses import build_losses
 from models import build_model
 from optimizers import build_optimizers
@@ -317,3 +319,50 @@ class Trainer(BaseTrainer):
         if os.path.isdir(self.logs_dir_saved):
             shutil.rmtree(self.logs_dir_saved)
         shutil.copytree(self.logs_dir, self.logs_dir_saved)
+
+    def test(self):
+        self.model.eval()
+        self.model.to(self.device)
+        preds = []
+        labels = []
+        with torch.no_grad():
+            for batch_idx, ((data, inp), _labels) in enumerate(self.datamanager.get_dataloader('test')):
+                data, _labels, inp = data.to(self.device), _labels.to(self.device), inp.to(self.device)
+
+                out = self.model(data, inp)
+
+                _preds = torch.sigmoid(out)
+                preds.append(_preds)
+                labels.append(_labels)
+
+        preds = torch.cat(preds, dim=0)
+        labels = torch.cat(labels, dim=0)
+        preds = preds.cpu().numpy()
+        labels = labels.cpu().numpy()
+
+        result_label, result_instance = recognition_metrics(labels, preds)
+        
+        self.logger.info('instance-based metrics:')
+        self.logger.info('accuracy: %0.4f' % result_instance.accuracy)
+        self.logger.info('precision: %0.4f' % result_instance.precision)
+        self.logger.info('recall: %0.4f' % result_instance.recall)
+        self.logger.info('f1_score: %0.4f' % result_instance.f1_score)
+
+        self.logger.info('class-based metrics:')
+        result = np.stack([result_label.accuracy, result_label.mean_accuracy, result_label.precision, result_label.recall, result_label.f1_score], axis=0)
+        result = np.around(result*100, 2)
+        result = result.transpose()
+        row_format ="{:>17}" * 6
+        self.logger.info(row_format.format('attribute', 'accuracy', 'mA', 'precision', 'recall', 'f1_score'))
+        self.logger.info(row_format.format(*['-']*6))
+        for i in range(len(self.datamanager.datasource.get_attribute())):
+            self.logger.info(row_format.format(self.datamanager.datasource.get_attribute()[i], *result[i].tolist()))
+        
+        self.logger.info(row_format.format(*['-']*6))
+        self.logger.info(row_format.format(
+            'mean',
+            round(np.mean(result_label.accuracy)*100, 2),
+            round(np.mean(result_label.mean_accuracy)*100, 2),
+            round(np.mean(result_label.precision)*100, 2),
+            round(np.mean(result_label.recall)*100, 2),
+            round(np.mean(result_label.f1_score)*100, 2)))

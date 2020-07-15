@@ -84,6 +84,7 @@ class GCNResnet(nn.Module):
         x = self.relu(x)
         x = self.gc2(x, adj)
         # x.size() = (num_classes, 2048)
+        x = torch.squeeze(x)
         x = torch.t(x)
         # x.size() = (2048, num_classes)
         x = torch.matmul(feature, x)
