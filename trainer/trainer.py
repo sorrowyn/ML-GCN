@@ -12,10 +12,10 @@ from torch.nn.utils import clip_grad_norm_
 
 from base import BaseTrainer
 from callbacks import Tqdm
-from data import DataManger
+from data import DataManger, word_embedding
 from evaluators import plot_loss_accuracy, compute_accuracy_cuda, recognition_metrics
 from losses import build_losses
-from models import build_model
+from models import build_model, gen_A
 from optimizers import build_optimizers
 from schedulers import build_lr_scheduler
 from utils import MetricTracker, summary
@@ -25,18 +25,18 @@ class Trainer(BaseTrainer):
         super(Trainer, self).__init__(config)
         self.datamanager = DataManger(config['data'])
         
-        concur, sums = self.datamanager.get_M_N()
-        inp = self.datamanager.get_inp()
-        
         # model
+        cfg_model = config['model']
+        concur, sums = self.datamanager.get_M_N()
+        adjacent_matrix = gen_A(concur, sums, cfg_model['threshold'], cfg_model['p'])
+        inp = self.datamanager.get_inp(config['model']['encode_dim'])
         self.model, params_model = build_model(
             config['model'],
             num_classes=len(self.datamanager.datasource.get_attribute()),
-            concur=concur,
-            sums=sums,
+            adjacent_matrix=adjacent_matrix,
             inp=inp)
 
-        # losses
+        # loss
         pos_ratio = torch.tensor(self.datamanager.datasource.get_weight('train'))
         self.criterion, params_loss = build_losses(config, pos_ratio=pos_ratio)
 

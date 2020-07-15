@@ -88,5 +88,5 @@ class DataManger(object):
     def get_M_N(self):
         return gen_M_N(self.datasource.get_data('train'), len(self.datasource.get_attribute()))
     
-    def get_inp(self):
-        return word_embedding(self.datasource.get_attribute(), dim=300)
+    def get_inp(self, dim=300):
+        return word_embedding(self.datasource.get_attribute(), dim=dim)

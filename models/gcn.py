@@ -44,19 +44,27 @@ class GraphConvolution(nn.Module):
 class GCNResnet(nn.Module):
     ''' Paper1: https://res.mdpi.com/d_attachment/futureinternet/futureinternet-11-00245/article_deploy/futureinternet-11-00245.pdf
         Paper2: https://arxiv.org/pdf/1904.03582.pdf
+    Args:
+        num_classes (int): num attribute in datasets
+        backbone (str): resnet?
+        concur (numpy.array(num_classes, num_classes))
+        sums (numpy.array(num_classes))
+        inp (numpy.array(num_classes, in_chanel))
+        threshold
     '''
     __model_factory = {
         'resnet50': torchvision.models.resnet50,
         'resnet101': torchvision.models.resnet101
     }
-    def __init__(self, num_classes, backbone,concur, sums, inp, in_channel, threshold ):
+    def __init__(self, num_classes, backbone, adjacent_matrix, inp, in_channel):
         super(GCNResnet, self).__init__()
         self.num_classes = num_classes
         self.resnet = self.__model_factory[backbone](pretrained=True)
         self.avgpool = nn.AdaptiveMaxPool2d(1)
         
-        self.inp = nn.Parameter(torch.from_numpy(inp), requires_grad=False)
-        self.A = nn.Parameter(torch.from_numpy(gen_A(concur, sums, threshold=threshold)).float())
+        self.inp = nn.Parameter(torch.from_numpy(inp).float(), requires_grad=False)
+        self.A = nn.Parameter(torch.from_numpy(adjacent_matrix).float())
+        
         self.gc1 = GraphConvolution(in_channel, 1024, bias=True)
         self.gc2 = GraphConvolution(1024, 2048, bias=True)
         self.relu = nn.LeakyReLU(0.2)
