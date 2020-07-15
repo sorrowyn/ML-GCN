@@ -29,14 +29,9 @@ def main(config):
 
     datamanager = DataManger(config['data'])
 
-    concur, sums = datamanager.get_M_N()
-    inp = datamanager.get_inp()
     model, _ = build_model(
         config['model'],
-        num_classes=len(datamanager.datasource.get_attribute()),
-        concur=concur,
-        sums=sums,
-        inp=inp)
+        num_classes=len(datamanager.datasource.get_attribute()))
 
     logger.info('Loading checkpoint: {} ...'.format(config['resume']))
     checkpoint = torch.load(config['resume'], map_location=map_location)

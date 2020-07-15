@@ -1,7 +1,7 @@
 from .gcn import GCNResnet
 from .util import gen_A
 
-def build_model(config, num_classes, adjacent_matrix, inp, pretrained=True, use_gpu=True):
+def build_model(config, num_classes, adjacent_matrix=None, inp=None, pretrained=True, use_gpu=True):
     dict_paramsters = None
     if config['name'] == 'gcn_resnet':
         dict_paramsters = {'backbone': config['backbone'],

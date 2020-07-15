@@ -47,23 +47,29 @@ class GCNResnet(nn.Module):
     Args:
         num_classes (int): num attribute in datasets
         backbone (str): resnet?
-        concur (numpy.array(num_classes, num_classes))
-        sums (numpy.array(num_classes))
+        adjacent_matrix (numpy.array(num_classes, num_classes))
         inp (numpy.array(num_classes, in_chanel))
-        threshold
+        in_channel (int): input channel and encode dim. default 300
     '''
     __model_factory = {
         'resnet50': torchvision.models.resnet50,
         'resnet101': torchvision.models.resnet101
     }
-    def __init__(self, num_classes, backbone, adjacent_matrix, inp, in_channel):
+    def __init__(self, num_classes, backbone, adjacent_matrix=None, inp=None, in_channel=300):
         super(GCNResnet, self).__init__()
         self.num_classes = num_classes
         self.resnet = self.__model_factory[backbone](pretrained=True)
         self.avgpool = nn.AdaptiveMaxPool2d(1)
         
-        self.inp = nn.Parameter(torch.from_numpy(inp).float(), requires_grad=False)
-        self.A = nn.Parameter(torch.from_numpy(adjacent_matrix).float())
+        if inp == None:
+            self.inp = nn.Parameter(torch.Tensor(num_classes, in_channel), requires_grad=False)
+        else:
+            self.inp = nn.Parameter(torch.from_numpy(inp).float(), requires_grad=False)
+        
+        if adjacent_matrix == None:
+            self.A = nn.Parameter(torch.Tensor(num_classes, num_classes))
+        else:
+            self.A = nn.Parameter(torch.from_numpy(adjacent_matrix).float())
         
         self.gc1 = GraphConvolution(in_channel, 1024, bias=True)
         self.gc2 = GraphConvolution(1024, 2048, bias=True)
