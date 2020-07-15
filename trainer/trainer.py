@@ -29,7 +29,7 @@ class Trainer(BaseTrainer):
         cfg_model = config['model']
         concur, sums = self.datamanager.get_M_N()
         adjacent_matrix = gen_A(concur, sums, cfg_model['threshold'], cfg_model['p'])
-        inp = self.datamanager.get_inp(config['model']['encode_dim'])
+        inp = self.datamanager.get_inp(cfg_model['encode_dim'])
         self.model, params_model = build_model(
             config['model'],
             num_classes=len(self.datamanager.datasource.get_attribute()),

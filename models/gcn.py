@@ -61,12 +61,12 @@ class GCNResnet(nn.Module):
         self.resnet = self.__model_factory[backbone](pretrained=True)
         self.avgpool = nn.AdaptiveMaxPool2d(1)
         
-        if inp == None:
+        if inp is None:
             self.inp = nn.Parameter(torch.Tensor(num_classes, in_channel), requires_grad=False)
         else:
             self.inp = nn.Parameter(torch.from_numpy(inp).float(), requires_grad=False)
         
-        if adjacent_matrix == None:
+        if adjacent_matrix is None:
             self.A = nn.Parameter(torch.Tensor(num_classes, num_classes))
         else:
             self.A = nn.Parameter(torch.from_numpy(adjacent_matrix).float())
