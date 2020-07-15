@@ -26,13 +26,15 @@ class Trainer(BaseTrainer):
         self.datamanager = DataManger(config['data'])
         
         concur, sums = self.datamanager.get_M_N()
+        inp = self.datamanager.get_inp()
         
         # model
         self.model, params_model = build_model(
             config['model'],
             num_classes=len(self.datamanager.datasource.get_attribute()),
             concur=concur,
-            sums=sums)
+            sums=sums,
+            inp=inp)
 
         # losses
         pos_ratio = torch.tensor(self.datamanager.datasource.get_weight('train'))
@@ -147,19 +149,19 @@ class Trainer(BaseTrainer):
         self.train_metrics.reset()
         if self.cfg_trainer['tqdm']:
             tqdm_callback = Tqdm(epoch, len(self.datamanager.get_dataloader('train')), phase='train')
-        for batch_idx, ((data, inp), labels) in enumerate(self.datamanager.get_dataloader('train')):
+        for batch_idx, (data, labels) in enumerate(self.datamanager.get_dataloader('train')):
             # get time for log num iter per seconds
             if not self.cfg_trainer['tqdm']:
                 start_time = time.time()
         
             # push data to device
-            data, labels, inp = data.to(self.device), labels.to(self.device), inp.to(self.device)
+            data, labels = data.to(self.device), labels.to(self.device)
 
             # zero gradient
             self.optimizer.zero_grad()
 
             # forward batch
-            out = self.model(data, inp)
+            out = self.model(data)
 
             # calculate loss and accuracy
             loss = self.criterion(out, labels)
@@ -218,15 +220,15 @@ class Trainer(BaseTrainer):
         with torch.no_grad():
             if self.cfg_trainer['tqdm']:
                 tqdm_callback = Tqdm(epoch, len(self.datamanager.get_dataloader('val')), phase='val')
-            for batch_idx, ((data, inp), labels) in enumerate(self.datamanager.get_dataloader('val')):
+            for batch_idx, (data, labels) in enumerate(self.datamanager.get_dataloader('val')):
                 if not self.cfg_trainer['tqdm']:
                     start_time = time.time()
                 
                 # push data to device
-                data, labels, inp = data.to(self.device), labels.to(self.device), inp.to(self.device)
+                data, labels = data.to(self.device), labels.to(self.device)
                 
                 # forward batch
-                out = self.model(data, inp)
+                out = self.model(data)
 
                 # calculate loss and accuracy
                 loss = self.criterion(out, labels)

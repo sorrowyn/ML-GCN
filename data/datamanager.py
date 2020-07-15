@@ -26,8 +26,6 @@ class DataManger(object):
             download=config['download'],
             extract=config['extract'])
 
-        self.inp = word_embedding(self.datasource.get_attribute(), dim=300)
-
         transform = dict()
         transform['train'] = transforms.Compose([
             transforms.Resize(size=self.datasource.get_image_size()),
@@ -53,9 +51,8 @@ class DataManger(object):
 
         self.dataset = dict()
         for _phase in self.datasource.get_list_phase():
-            self.dataset[_phase] = ImageDataset_GCN(
+            self.dataset[_phase] = ImageDataset(
                 self.datasource.get_data(_phase),
-                inp = self.inp,
                 transform=transform[_phase])
 
         if phase == 'train':
@@ -94,3 +91,6 @@ class DataManger(object):
     
     def get_M_N(self):
         return gen_M_N(self.datasource.get_data('train'), len(self.datasource.get_attribute()))
+    
+    def get_inp(self):
+        return word_embedding(self.datasource.get_attribute(), dim=300)

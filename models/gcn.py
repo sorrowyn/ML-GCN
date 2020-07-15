@@ -49,18 +49,21 @@ class GCNResnet(nn.Module):
         'resnet50': torchvision.models.resnet50,
         'resnet101': torchvision.models.resnet101
     }
-    def __init__(self, num_classes, backbone, concur, sums, in_channel, threshold):
+    def __init__(self, num_classes, backbone, concur, sums, inp, in_channel, threshold):
         super(GCNResnet, self).__init__()
         self.num_classes = num_classes
         self.resnet = self.__model_factory[backbone](pretrained=True)
         self.avgpool = nn.AdaptiveMaxPool2d(1)
-
+        
+        self.inp = torch.from_numpy(inp)
+        self.inp.requires_grad = False
+        
         self.A = nn.Parameter(torch.from_numpy(gen_A(concur, sums, threshold=threshold)).float())
         self.gc1 = GraphConvolution(in_channel, 1024, bias=True)
         self.gc2 = GraphConvolution(1024, 2048, bias=True)
         self.relu = nn.LeakyReLU(0.2)
 
-    def forward(self, x, inp):
+    def forward(self, x):
         feature = self.resnet.conv1(x)
         feature = self.resnet.bn1(feature)
         feature = self.resnet.relu(feature)
@@ -75,11 +78,11 @@ class GCNResnet(nn.Module):
 
         # x = x[0]
         # inp.size() = (batch_size, num_classes, in_channel)
-        inp = inp[0] # all inp are the same for each batch
+        # inp = inp[0] # all inp are the same for each batch
         # inp.size() = (num_classes, in_channel)
         adj = gen_adj(self.A).detach()
         # adj.size() = (num_classes, num_classes)
-        x = self.gc1(inp, adj)
+        x = self.gc1(self.inp, adj)
         # x.size() = (num_classes, 1024)
         x = self.relu(x)
         x = self.gc2(x, adj)
