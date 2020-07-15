@@ -27,14 +27,16 @@ def main(config):
     device = torch.device('cuda:0' if use_gpu else 'cpu')
     map_location = "cuda:0" if use_gpu else torch.device('cpu')
 
-    datamanager = DataManger(config['data'], phase='test')
+    datamanager = DataManger(config['data'])
 
-    concur, sums = datamanager.get_M_N()    
+    concur, sums = datamanager.get_M_N()
+    inp = datamanager.get_inp()
     model, _ = build_model(
         config['model'],
         num_classes=len(datamanager.datasource.get_attribute()),
         concur=concur,
-        sums=sums)
+        sums=sums,
+        inp=inp)
 
     logger.info('Loading checkpoint: {} ...'.format(config['resume']))
     checkpoint = torch.load(config['resume'], map_location=map_location)
@@ -48,10 +50,10 @@ def main(config):
 
     with tqdm(total=len(datamanager.get_dataloader('test'))) as epoch_pbar:
         with torch.no_grad():
-            for batch_idx, ((data, inp), _labels) in enumerate(datamanager.get_dataloader('test')):
-                data, _labels, inp = data.to(device), _labels.to(device), inp.to(device)
+            for batch_idx, (data, _labels) in enumerate(datamanager.get_dataloader('test')):
+                data, _labels = data.to(device), _labels.to(device)
 
-                out = model(data, inp)
+                out = model(data)
 
                 _preds = torch.sigmoid(out)
                 preds.append(_preds)

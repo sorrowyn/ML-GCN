@@ -45,7 +45,7 @@
         "factor": 0.1,
         "iters": 10,
         "method": "linear",
-        "patience": 10,
+        "patience": 5,
         "min_lr": 0.000001
     },
     "clip_grad_norm_": {

@@ -49,15 +49,13 @@ class GCNResnet(nn.Module):
         'resnet50': torchvision.models.resnet50,
         'resnet101': torchvision.models.resnet101
     }
-    def __init__(self, num_classes, backbone, concur, sums, inp, in_channel, threshold):
+    def __init__(self, num_classes, backbone,concur, sums, inp, in_channel, threshold ):
         super(GCNResnet, self).__init__()
         self.num_classes = num_classes
         self.resnet = self.__model_factory[backbone](pretrained=True)
         self.avgpool = nn.AdaptiveMaxPool2d(1)
         
-        self.inp = torch.from_numpy(inp)
-        self.inp.requires_grad = False
-        
+        self.inp = nn.Parameter(torch.from_numpy(inp), requires_grad=False)
         self.A = nn.Parameter(torch.from_numpy(gen_A(concur, sums, threshold=threshold)).float())
         self.gc1 = GraphConvolution(in_channel, 1024, bias=True)
         self.gc2 = GraphConvolution(1024, 2048, bias=True)

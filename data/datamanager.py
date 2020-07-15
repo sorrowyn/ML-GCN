@@ -16,7 +16,7 @@ from .image import build_datasource
 from .util import gen_M_N, word_embedding
 
 class DataManger(object):
-    def __init__(self, config, phase='train'):
+    def __init__(self, config):
         super().__init__()
         self.data_name = config['name']
 
@@ -55,29 +55,25 @@ class DataManger(object):
                 self.datasource.get_data(_phase),
                 transform=transform[_phase])
 
-        if phase == 'train':
-            self.train_loader = DataLoader(
-                dataset=self.dataset['train'],
-                batch_size=config['batch_size'],
-                shuffle=config['shuffle'],
-                num_workers=config['num_workers'],
-                pin_memory=config['pin_memory'],
-                drop_last=config['drop_last']
-            )
+        self.train_loader = DataLoader(
+            dataset=self.dataset['train'],
+            batch_size=config['batch_size'],
+            shuffle=config['shuffle'],
+            num_workers=config['num_workers'],
+            pin_memory=config['pin_memory'],
+            drop_last=config['drop_last']
+        )
 
-            self.val_loader = DataLoader(
-                dataset=self.dataset['val'],
-                batch_size=config['batch_size'],
-                shuffle=False,
-                num_workers=config['num_workers'],
-                pin_memory=config['pin_memory'],
-                drop_last=config['drop_last']
-            )
-        elif phase == 'test':
-            if 'test' in self.datasource.get_list_phase():
-                self.test_loader = DataLoader(self.dataset['test'], batch_size=32, shuffle=False, drop_last=False)
-        else:
-            raise ValueError("phase == train or phase == test")
+        self.val_loader = DataLoader(
+            dataset=self.dataset['val'],
+            batch_size=config['batch_size'],
+            shuffle=False,
+            num_workers=config['num_workers'],
+            pin_memory=config['pin_memory'],
+            drop_last=config['drop_last']
+        )
+        if 'test' in self.datasource.get_list_phase():
+            self.test_loader = DataLoader(self.dataset['test'], batch_size=32, shuffle=False, drop_last=False)
 
     def get_dataloader(self, dataset):
         if dataset not in ['train', 'val', 'test']:

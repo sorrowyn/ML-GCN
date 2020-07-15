@@ -6,7 +6,6 @@ from utils import read_json
 def main(config):
     trainer = Trainer(config)
     trainer.train()
-    trainer.test()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='')
