@@ -145,16 +145,13 @@ class Trainer(BaseTrainer):
         self.train_metrics.reset()
         if self.cfg_trainer['tqdm']:
             tqdm_callback = Tqdm(epoch, len(self.datamanager.get_dataloader('train')), phase='train')
-
-        # send inp to device
-        inp = self.datamanager.get_inp().to(self.device)
-
-        for batch_idx, (data, labels) in enumerate(self.datamanager.get_dataloader('train')):
+        for batch_idx, ((data, inp), labels) in enumerate(self.datamanager.get_dataloader('train')):
             # get time for log num iter per seconds
             if not self.cfg_trainer['tqdm']:
                 start_time = time.time()
+        
             # push data to device
-            data, labels = data.to(self.device), labels.to(self.device), 
+            data, labels, inp = data.to(self.device), labels.to(self.device), inp.to(self.device)
 
             # zero gradient
             self.optimizer.zero_grad()
@@ -219,15 +216,12 @@ class Trainer(BaseTrainer):
         with torch.no_grad():
             if self.cfg_trainer['tqdm']:
                 tqdm_callback = Tqdm(epoch, len(self.datamanager.get_dataloader('val')), phase='val')
-            
-            # send inp to device
-            inp = self.datamanager.get_inp().to(self.device)
-
-            for batch_idx, (data, labels) in enumerate(self.datamanager.get_dataloader('val')):
+            for batch_idx, ((data, inp), labels) in enumerate(self.datamanager.get_dataloader('val')):
                 if not self.cfg_trainer['tqdm']:
                     start_time = time.time()
+                
                 # push data to device
-                data, labels = data.to(self.device), labels.to(self.device)
+                data, labels, inp = data.to(self.device), labels.to(self.device), inp.to(self.device)
                 
                 # forward batch
                 out = self.model(data, inp)

@@ -11,7 +11,7 @@ import numpy as np
 from torchvision import transforms
 from torch.utils.data.dataloader import DataLoader
 
-from .datasets import ImageDataset
+from .datasets import ImageDataset, ImageDataset_GCN
 from .image import build_datasource
 from .util import gen_M_N, word_embedding
 
@@ -25,6 +25,8 @@ class DataManger(object):
             root_dir=config['data_dir'],
             download=config['download'],
             extract=config['extract'])
+
+        self.inp = word_embedding(self.datasource.get_attribute(), dim=300)
 
         transform = dict()
         transform['train'] = transforms.Compose([
@@ -51,8 +53,9 @@ class DataManger(object):
 
         self.dataset = dict()
         for _phase in self.datasource.get_list_phase():
-            self.dataset[_phase] = ImageDataset(
+            self.dataset[_phase] = ImageDataset_GCN(
                 self.datasource.get_data(_phase),
+                inp = self.inp,
                 transform=transform[_phase])
 
         if phase == 'train':
@@ -91,7 +94,3 @@ class DataManger(object):
     
     def get_M_N(self):
         return gen_M_N(self.datasource.get_data('train'), len(self.datasource.get_attribute()))
-    
-    def get_inp(self):
-        return word_embedding(self.datasource.get_attribute(), dim=300)
-
