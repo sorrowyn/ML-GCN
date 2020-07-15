@@ -33,5 +33,5 @@ def word_embedding(attribute_name, dim=300):
         lookup_tensor = torch.tensor([word_to_ix[x]], dtype=torch.long)
         embed = embeds(lookup_tensor)
         word2vec = torch.cat((word2vec, embed), 0)
-    word2vec = word2vec.detach()
+    word2vec = word2vec.detach().numpy()
     return word2vec

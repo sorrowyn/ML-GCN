@@ -56,8 +56,8 @@ class GCNResnet(nn.Module):
         self.avgpool = nn.AdaptiveMaxPool2d(1)
 
         self.A = nn.Parameter(torch.from_numpy(gen_A(concur, sums, threshold=threshold)).float())
-        self.gc1 = GraphConvolution(in_channel, 1024)
-        self.gc2 = GraphConvolution(1024, 2048)
+        self.gc1 = GraphConvolution(in_channel, 1024, bias=True)
+        self.gc2 = GraphConvolution(1024, 2048, bias=True)
         self.relu = nn.LeakyReLU(0.2)
 
     def forward(self, x, inp):
