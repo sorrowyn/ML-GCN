@@ -4,7 +4,7 @@
         "name": "gcn_resnet",
         "backbone": "resnet50",
         "encode_dim": 300,
-        "threshold": 0.4,
+        "threshold": 0.5,
         "p": 0.25
     },
     "data": {
@@ -46,7 +46,7 @@
         "factor": 0.1,
         "iters": 10,
         "method": "linear",
-        "patience": 5,
+        "patience": 10,
         "min_lr": 0.000001
     },
     "clip_grad_norm_": {
@@ -54,14 +54,14 @@
         "max_norm": 10.0
     },
     "trainer": {
-        "epochs": 60,
+        "epochs": 100,
         "checkpoint_dir": "saved/checkpoints",
         "log_dir": "saved/logs",
         "log_dir_saved": "saved/logs1",
         "tqdm": true
     },
     "trainer_colab": {
-        "epochs": 60,
+        "epochs": 100,
         "checkpoint_dir": "/content/drive/Shared drives/REID/HIEN/Models/ML-GCN/checkpoints",
         "log_dir": "saved/logs",
         "log_dir_saved": "/content/drive/Shared drives/REID/HIEN/Models/ML-GCN/logs",

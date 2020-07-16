@@ -59,7 +59,7 @@ class GCNResnet(nn.Module):
         super(GCNResnet, self).__init__()
         self.num_classes = num_classes
         self.resnet = self.__model_factory[backbone](pretrained=True)
-        self.avgpool = nn.AdaptiveMaxPool2d(1)
+        self.avgpool = nn.AdaptiveAvgPool2d(1)
         
         if inp is None:
             self.inp = nn.Parameter(torch.Tensor(num_classes, in_channel), requires_grad=False)
