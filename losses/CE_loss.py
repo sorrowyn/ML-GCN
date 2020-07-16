@@ -33,7 +33,7 @@ class CEL_Sigmoid(nn.Module):
         if self.pos_ratio is not None:
             weight = ratio2weight(targets, self.pos_ratio)
             loss = (loss * weight)
-        loss = torch.mean(loss) if self.reduction == 'mean' else torch.sum(loss)
+        loss = loss.sum() / batch_size if self.reduction == 'mean' else torch.sum(loss)
         return loss
 
 if __name__ == "__main__":
